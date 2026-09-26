@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+enum HomeworkStatus {
+  TODO
+  IN_PROGRESS
+  SUBMITTED
+  GRADED
+}
+
+model User {
+  id String @id @default(cuid())
+  studentId String? @unique
+  email String @unique
+  passwordHash String
+  name String
+  role UserRole @default(STUDENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  profile StudentProfile?
+  submissions HomeworkSubmission[]
+  marks Mark[]
+  enrollments Enrollment[]
+}
+
+model StudentProfile {
+  id String @id @default(cuid())
+  userId String @unique
+  className String
+  section String?
+  rollNumber String?
+  joinedAt DateTime?
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Course {
+  id String @id @default(cuid())
+  name String
+  teacherName String
+  room String?
+  createdAt DateTime @default(now())
+  enrollments Enrollment[]
+  homework Homework[]
+}
+
+model Enrollment {
+  id String @id @default(cuid())
+  studentId String
+  courseId String
+  student User @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  @@unique([studentId, courseId])
+}
+
+model Homework {
+  id String @id @default(cuid())
+  courseId String
+  title String
+  description String?
+  dueDate DateTime
+  createdAt DateTime @default(now())
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  submissions HomeworkSubmission[]
+}
+
+model HomeworkSubmission {
+  id String @id @default(cuid())
+  homeworkId String
+  studentId String
+  status HomeworkStatus @default(TODO)
+  progress Int @default(0)
+  score Int?
+  submittedAt DateTime?
+  homework Homework @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
+  student User @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  @@unique([homeworkId, studentId])
+}
+
+model Mark {
+  id String @id @default(cuid())
+  studentId String
+  subject String
+  examName String
+  score Float
+  maxScore Float
+  createdAt DateTime @default(now())
+  student User @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+model Holiday {
+  id String @id @default(cuid())
+  title String
+  date DateTime
+  description String?
+}
+
+model Session {
+  sid String @id
+  sess Json
+  expire DateTime
+  @@index([expire])
+}

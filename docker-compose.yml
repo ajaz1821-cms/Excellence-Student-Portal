@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: excellence
+      POSTGRES_PASSWORD: excellence
+      POSTGRES_DB: excellence
+    ports:
+      - '5432:5432'
+    volumes:
+      - excellence-postgres:/var/lib/postgresql/data
+volumes:
+  excellence-postgres:
